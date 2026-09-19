@@ -40,6 +40,26 @@ D-Bus method and was confirmed to map the rebuilt library.
 See [docs/current-state.md](docs/current-state.md) for verification,
 rollback, and future-update instructions.
 
+## Update protection
+
+An APT hold on `libmuffin0` prevents normal Mint updates from silently
+replacing this local fix. It is not enabled by default because it defers
+Muffin security and bug-fix updates. To enable it deliberately:
+
+```sh
+pkexec apt-mark hold libmuffin0
+```
+
+Run the following from a normal terminal to confirm both the installed file
+and the hold:
+
+```sh
+./scripts/check-fix.sh
+```
+
+When an update is available, rebuild this patch for its matching source first,
+then deliberately remove and restore the hold as part of that update.
+
 ## Applying the patch to matching source
 
 From a checkout of the matching Muffin source version:

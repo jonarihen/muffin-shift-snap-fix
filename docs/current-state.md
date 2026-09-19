@@ -15,10 +15,24 @@ against the rebuilt package after Cinnamon restarted.
 
 ## What happens on updates
 
-This is a local build with the same version as Mint's installed package.
-When Mint publishes a newer `libmuffin0`, its package replaces this one.
-FancyTiles settings persist, but the Muffin patch will need to be rebuilt
-for the updated source and reinstalled.
+This is a local build with the same version as Mint's installed package. No
+APT hold is enabled yet. Without one, a newer Mint `libmuffin0` package will
+replace this library and remove the patch. FancyTiles settings persist.
+
+An APT hold is the reliable way to prevent that automatic replacement, but it
+also defers Muffin security and bug-fix updates. When Mint publishes a new
+Muffin version, rebuild this patch for its matching source before deliberately
+accepting that update. Enable the hold only after accepting that tradeoff:
+
+```sh
+pkexec apt-mark hold libmuffin0
+```
+
+Confirm the protection and the current library checksum at any time:
+
+```sh
+./scripts/check-fix.sh
+```
 
 Before an update, check the installed version:
 
@@ -26,10 +40,20 @@ Before an update, check the installed version:
 dpkg-query -W -f='${Package} ${Version} ${Status}\\n' libmuffin0 muffin cinnamon
 ```
 
-After an update, check whether Shift again triggers Mint's own snap while
-dragging. If it does, obtain the matching Muffin source, apply the patch in
-this repository, build the library package, install it, then restart
-Cinnamon with:
+To update Muffin deliberately, first remove the hold:
+
+```sh
+pkexec apt-mark unhold libmuffin0
+```
+
+Obtain the matching Muffin source, apply the patch in this repository, build
+and install the replacement `libmuffin0`, then restore the hold:
+
+```sh
+pkexec apt-mark hold libmuffin0
+```
+
+Finally restart Cinnamon with:
 
 ```sh
 gdbus call --session --dest org.Cinnamon --object-path /org/Cinnamon \\
