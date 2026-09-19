@@ -23,11 +23,14 @@ native move/snap handler. It covers both dragging and dropping a window.
 
 ## Upstream context
 
-This is the documented workaround for
-[FancyTiles issue #38](https://github.com/BasGeertsema/fancytiles/issues/38),
-where using Left Shift conflicts with Mint's native window movement. The
-upstream report is closed and recommends using Ctrl; this repository keeps
-the option to use Shift without that conflict.
+The root cause is tracked in
+[Muffin issue #863](https://github.com/linuxmint/muffin/issues/863), which
+requests a configurable setting for Shift-driven legacy snapping. This
+repository is the documented workaround until Muffin provides that setting.
+
+[FancyTiles issue #38](https://github.com/BasGeertsema/fancytiles/issues/38)
+documents the same user-facing conflict. It is closed and recommends using
+Ctrl; this repository keeps the option to use Shift without that conflict.
 
 Native Cinnamon edge tiling is also disabled with:
 
