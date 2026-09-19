@@ -1,0 +1,25 @@
+diff --git a/src/core/window.c b/src/core/window.c
+index 1edb0fe..5ee26f8 100644
+--- a/src/core/window.c
++++ b/src/core/window.c
+@@ -7097,7 +7097,7 @@ end_grab_op (MetaWindow *window,
+             meta_window_tile (window, window->display->preview_tile_mode);
+           else
+             update_move (window,
+-                         modifiers & CLUTTER_SHIFT_MASK,
++                         FALSE,
+                          x, y);
+         }
+       else if (meta_grab_op_is_resizing (window->display->grab_op))
+@@ -7178,8 +7178,10 @@ meta_window_handle_mouse_grab_op_event  (MetaWindow         *window,
+       meta_display_check_threshold_reached (window->display, x, y);
+       if (meta_grab_op_is_moving (window->display->grab_op))
+         {
++          /* FancyTiles owns Shift while a window is dragged. Do not turn
++           * that modifier into Muffin's independent edge-snap command. */
+           update_move (window,
+-                       modifier_state & CLUTTER_SHIFT_MASK,
++                       FALSE,
+                        x, y);
+         }
+       else if (meta_grab_op_is_resizing (window->display->grab_op))
