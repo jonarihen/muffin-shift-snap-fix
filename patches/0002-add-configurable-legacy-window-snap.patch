@@ -1,0 +1,120 @@
+diff --git a/data/org.cinnamon.muffin.gschema.xml.in b/data/org.cinnamon.muffin.gschema.xml.in
+index 526655f..033f4c6 100644
+--- a/data/org.cinnamon.muffin.gschema.xml.in
++++ b/data/org.cinnamon.muffin.gschema.xml.in
+@@ -43,6 +43,16 @@
+       </description>
+     </key>
+ 
++    <key name="legacy-window-snap" type="b">
++      <default>true</default>
++      <summary>Enable Shift for legacy window snapping</summary>
++      <description>
++        When enabled, holding Shift while moving a window enables legacy
++        window snapping and edge resistance. Disable this when Shift is used
++        by another window-management workflow.
++      </description>
++    </key>
++
+     <key name="tile-maximize" type="b">
+       <default>false</default>
+       <summary>Sets maximize as the tile action for the top edge of the screen</summary>
+diff --git a/src/core/prefs.c b/src/core/prefs.c
+index 6c697b2..42a0c6d 100644
+--- a/src/core/prefs.c
++++ b/src/core/prefs.c
+@@ -123,6 +123,7 @@ static int   draggable_border_width = 10;
+ static int   drag_threshold;
+ static gboolean resize_with_right_button = FALSE;
+ static gboolean edge_tiling = FALSE;
++static gboolean legacy_window_snap = TRUE;
+ static gboolean force_fullscreen = TRUE;
+ static gboolean auto_maximize = TRUE;
+ static gboolean show_fallback_app_menu = TRUE;
+@@ -415,6 +416,13 @@ static MetaBoolPreference preferences_bool[] =
+       },
+       &edge_tiling,
+     },
++    {
++      { "legacy-window-snap",
++        SCHEMA_MUFFIN,
++        META_PREF_LEGACY_WINDOW_SNAP,
++      },
++      &legacy_window_snap,
++    },
+     {
+       { "workspaces-only-on-primary",
+         SCHEMA_MUFFIN,
+@@ -1925,6 +1933,9 @@ meta_preference_to_string (MetaPreference pref)
+     case META_PREF_EDGE_TILING:
+       return "EDGE_TILING";
+ 
++    case META_PREF_LEGACY_WINDOW_SNAP:
++      return "LEGACY_WINDOW_SNAP";
++
+     case META_PREF_FORCE_FULLSCREEN:
+       return "FORCE_FULLSCREEN";
+ 
+@@ -2400,6 +2411,12 @@ meta_prefs_get_edge_tiling (void)
+   return edge_tiling;
+ }
+ 
++gboolean
++meta_prefs_get_legacy_window_snap (void)
++{
++  return legacy_window_snap;
++}
++
+ gboolean
+ meta_prefs_get_tile_maximize (void)
+ {
+diff --git a/src/core/window.c b/src/core/window.c
+index 1edb0fe..1db48a7 100644
+--- a/src/core/window.c
++++ b/src/core/window.c
+@@ -7097,6 +7097,7 @@ end_grab_op (MetaWindow *window,
+             meta_window_tile (window, window->display->preview_tile_mode);
+           else
+             update_move (window,
++                         meta_prefs_get_legacy_window_snap () &&
+                          modifiers & CLUTTER_SHIFT_MASK,
+                          x, y);
+         }
+@@ -7179,6 +7180,7 @@ meta_window_handle_mouse_grab_op_event  (MetaWindow         *window,
+       if (meta_grab_op_is_moving (window->display->grab_op))
+         {
+           update_move (window,
++                       meta_prefs_get_legacy_window_snap () &&
+                        modifier_state & CLUTTER_SHIFT_MASK,
+                        x, y);
+         }
+diff --git a/src/meta/prefs.h b/src/meta/prefs.h
+index ef319b7..d1155e5 100644
+--- a/src/meta/prefs.h
++++ b/src/meta/prefs.h
+@@ -61,6 +61,7 @@
+  * @META_PREF_CURSOR_SIZE: cursor size
+  * @META_PREF_RESIZE_WITH_RIGHT_BUTTON: resize with right button
+  * @META_PREF_EDGE_TILING: edge tiling
++ * @META_PREF_LEGACY_WINDOW_SNAP: Shift-driven legacy window snapping
+  * @META_PREF_FORCE_FULLSCREEN: force fullscreen
+  * @META_PREF_WORKSPACES_ONLY_ON_PRIMARY: workspaces only on primary
+  * @META_PREF_DRAGGABLE_BORDER_WIDTH: draggable border width
+@@ -106,6 +107,7 @@ typedef enum
+   META_PREF_CURSOR_SIZE,
+   META_PREF_RESIZE_WITH_RIGHT_BUTTON,
+   META_PREF_EDGE_TILING,
++  META_PREF_LEGACY_WINDOW_SNAP,
+   META_PREF_FORCE_FULLSCREEN,
+   META_PREF_WORKSPACES_ONLY_ON_PRIMARY,
+   META_PREF_DRAGGABLE_BORDER_WIDTH,
+@@ -204,6 +206,9 @@ gboolean                    meta_prefs_get_gnome_animations   (void);
+ META_EXPORT
+ gboolean                    meta_prefs_get_edge_tiling        (void);
+ 
++META_EXPORT
++gboolean                    meta_prefs_get_legacy_window_snap (void);
++
+ META_EXPORT
+ gboolean                    meta_prefs_get_tile_maximize      (void);
+ 

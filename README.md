@@ -51,6 +51,23 @@ D-Bus method and was confirmed to map the rebuilt library.
 See [docs/current-state.md](docs/current-state.md) for verification,
 rollback, and future-update instructions.
 
+## Proposed upstream fix
+
+The `proposal/configurable-legacy-window-snap` branch contains
+`patches/0002-add-configurable-legacy-window-snap.patch`, a build-verified
+proposal for Muffin upstream. It adds an opt-in preference rather than
+changing the default for everyone:
+
+```sh
+gsettings set org.cinnamon.muffin legacy-window-snap false
+```
+
+With the default `true`, existing Shift-based legacy snapping is unchanged.
+The setting affects only moving windows; resizing behaviour and standard edge
+tiling remain unchanged. It is a proposal for Muffin 6.6.3, not a change that
+has been installed on this system. See
+[docs/upstream-proposal.md](docs/upstream-proposal.md).
+
 ## Update protection
 
 An APT hold on `libmuffin0` prevents normal Mint updates from silently
