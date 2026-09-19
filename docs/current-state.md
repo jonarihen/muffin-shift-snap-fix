@@ -15,9 +15,9 @@ against the rebuilt package after Cinnamon restarted.
 
 ## What happens on updates
 
-This is a local build with the same version as Mint's installed package. No
-APT hold is enabled yet. Without one, a newer Mint `libmuffin0` package will
-replace this library and remove the patch. FancyTiles settings persist.
+This is a local build with the same version as Mint's installed package.
+`libmuffin0` is held with APT, so a normal Mint update cannot replace this
+library and silently remove the patch. FancyTiles settings persist.
 
 An APT hold is the reliable way to prevent that automatic replacement, but it
 also defers Muffin security and bug-fix updates. When Mint publishes a new
