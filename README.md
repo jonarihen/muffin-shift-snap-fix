@@ -21,6 +21,14 @@ targets while FancyTiles was also trying to place them.
 paths in `src/core/window.c` so they no longer pass Shift to Muffin's
 native move/snap handler. It covers both dragging and dropping a window.
 
+## Upstream context
+
+This is the documented workaround for
+[FancyTiles issue #38](https://github.com/BasGeertsema/fancytiles/issues/38),
+where using Left Shift conflicts with Mint's native window movement. The
+upstream report is closed and recommends using Ctrl; this repository keeps
+the option to use Shift without that conflict.
+
 Native Cinnamon edge tiling is also disabled with:
 
 ```sh
