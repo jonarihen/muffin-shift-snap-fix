@@ -2,7 +2,7 @@
 
 This repository keeps the local Cinnamon/Muffin change that prevents
 Muffin from treating **Shift** as its own edge-snapping command while a
-window is being moved.
+window is being moved, while preserving ordinary drag-to-edge tiling.
 
 It is paired with FancyTiles:
 
@@ -19,7 +19,9 @@ targets while FancyTiles was also trying to place them.
 
 `patches/0001-disable-muffin-shift-edge-snap.patch` changes the two move
 paths in `src/core/window.c` so they no longer pass Shift to Muffin's
-native move/snap handler. It covers both dragging and dropping a window.
+native move/snap handler. It also clears Muffin's tile preview while Shift
+is held, including at drop time. Dragging without Shift still tiles a window
+at the screen edge.
 
 ## Upstream context
 
@@ -32,13 +34,14 @@ repository is the documented workaround until Muffin provides that setting.
 documents the same user-facing conflict. It is closed and recommends using
 Ctrl; this repository keeps the option to use Shift without that conflict.
 
-Native Cinnamon edge tiling is also disabled with:
+Normal Cinnamon edge tiling must be enabled with:
 
 ```sh
-gsettings set org.cinnamon.muffin edge-tiling false
+gsettings set org.cinnamon.muffin edge-tiling true
 ```
 
-That leaves FancyTiles as the only snapping system during a drag.
+Muffin then handles plain drags to the edge, and FancyTiles handles Shift
+drags without a competing Muffin tile target.
 
 ## Current installation
 
@@ -50,6 +53,8 @@ D-Bus method and was confirmed to map the rebuilt library.
 
 See [docs/current-state.md](docs/current-state.md) for verification,
 rollback, and future-update instructions.
+The installed and previous local `libmuffin0` packages are saved in
+`artifacts/` for this machine.
 
 ## Update protection
 

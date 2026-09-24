@@ -8,7 +8,7 @@
 | Muffin source used | `6.6.3`, commit `25f17c16175cc10a25a4581cfa8609443a05bab0` |
 | Installed local package | `libmuffin0 6.6.3+zena` |
 | FancyTiles | enabled: `fancytiles@basgeertsema` |
-| Cinnamon edge tiling | disabled |
+| Cinnamon edge tiling | enabled for drags without Shift |
 
 The installed `/usr/lib/x86_64-linux-gnu/libmuffin.so.0.0.0` was checked
 against the rebuilt package after Cinnamon restarted.
@@ -62,23 +62,25 @@ gdbus call --session --dest org.Cinnamon --object-path /org/Cinnamon \\
 
 ## Rollback
 
-The original Mint package saved during the initial installation is:
+The previous local package is saved as:
 
 ```text
-/tmp/muffin-original/libmuffin0_6.6.3+zena_amd64.deb
+artifacts/libmuffin0_6.6.3+zena_previous-local_amd64.deb
 ```
 
-To restore it:
+To restore the previous FancyTiles-only drag behavior:
 
 ```sh
-pkexec dpkg -i /tmp/muffin-original/libmuffin0_6.6.3+zena_amd64.deb
-gsettings set org.cinnamon.muffin edge-tiling true
+pkexec dpkg --force-hold -i artifacts/libmuffin0_6.6.3+zena_previous-local_amd64.deb
+pkexec apt-mark hold libmuffin0
+gsettings set org.cinnamon.muffin edge-tiling false
 gdbus call --session --dest org.Cinnamon --object-path /org/Cinnamon \\
   --method org.Cinnamon.RestartCinnamon false
 ```
 
-`/tmp` can be cleared by the system, so download another original copy
-before relying on rollback later:
+Run these commands from this repository. The package in `artifacts/` is ignored
+by Git, so preserve it separately before deleting this worktree. To restore
+stock Mint Muffin, download its package separately:
 
 ```sh
 mkdir -p ~/Downloads/muffin-rollback
@@ -88,6 +90,7 @@ apt-get download libmuffin0=6.6.3+zena
 
 ## Scope
 
-The patch affects only Muffin's Shift-driven native edge snap during a
-window move. It does not change window resizing, keyboard shortcuts,
-FancyTiles' own zone logic, or other Cinnamon behaviour.
+The patch affects Muffin's Shift-driven native edge snap and tile preview
+during a window move. It preserves ordinary drag-to-edge tiling without Shift.
+It does not change window resizing, keyboard shortcuts, FancyTiles' own zone
+logic, or other Cinnamon behaviour.

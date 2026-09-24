@@ -1,8 +1,60 @@
+diff --git a/src/core/display-private.h b/src/core/display-private.h
+index 0c3803a..8e60aff 100644
+--- a/src/core/display-private.h
++++ b/src/core/display-private.h
+@@ -179,6 +179,7 @@ struct _MetaDisplay
+   int64_t     grab_last_moveresize_time;
+   MetaEdgeResistanceData *grab_edge_resistance_data;
+   unsigned int grab_last_user_action_was_snap;
++  gboolean    grab_shift_held;
+
+   int	      grab_resize_timeout_id;
+
+diff --git a/src/core/display.c b/src/core/display.c
+index b5ea3e8..1044297 100644
+--- a/src/core/display.c
++++ b/src/core/display.c
+@@ -1977,6 +1977,7 @@ meta_display_begin_grab_op (MetaDisplay *display,
+   display->grab_latest_motion_y = root_y;
+   display->grab_last_moveresize_time = 0;
+   display->grab_last_user_action_was_snap = FALSE;
++  display->grab_shift_held = FALSE;
+   display->grab_frame_action = frame_action;
+
+   meta_display_update_cursor (display);
 diff --git a/src/core/window.c b/src/core/window.c
-index 1edb0fe..5ee26f8 100644
+index 1edb0fe..b9ccf1a 100644
 --- a/src/core/window.c
 +++ b/src/core/window.c
-@@ -7097,7 +7097,7 @@ end_grab_op (MetaWindow *window,
+@@ -6766,10 +6766,10 @@ update_move (MetaWindow  *window,
+   shake_threshold = meta_prefs_get_drag_threshold () *
+     DRAG_THRESHOLD_TO_SHAKE_THRESHOLD_FACTOR;
+
+-  if (snap)
++  if (snap || display->grab_shift_held)
+     {
+-      /* We don't want to tile while snapping. Also, clear any previous tile
+-         request. */
++      /* Shift is reserved for extension snapping during a window move.
++       * Do not offer a native tile target while it is held. */
+       display->preview_tile_mode = META_TILE_NONE;
+       window->tile_monitor_number = -1;
+     }
+@@ -7082,6 +7082,7 @@ end_grab_op (MetaWindow *window,
+   clutter_event_get_coords (event, &x, &y);
+   modifiers = clutter_event_get_state (event);
+   meta_display_check_threshold_reached (window->display, x, y);
++  window->display->grab_shift_held = (modifiers & CLUTTER_SHIFT_MASK) != 0;
+
+   /* If the user was snap moving then ignore the button
+    * release because they may have let go of shift before
+@@ -7093,11 +7094,12 @@ end_grab_op (MetaWindow *window,
+     {
+       if (meta_grab_op_is_moving (window->display->grab_op))
+         {
+-          if (window->display->preview_tile_mode != META_TILE_NONE)
++          if (!window->display->grab_shift_held &&
++              window->display->preview_tile_mode != META_TILE_NONE)
              meta_window_tile (window, window->display->preview_tile_mode);
            else
              update_move (window,
@@ -11,12 +63,12 @@ index 1edb0fe..5ee26f8 100644
                           x, y);
          }
        else if (meta_grab_op_is_resizing (window->display->grab_op))
-@@ -7178,8 +7178,10 @@ meta_window_handle_mouse_grab_op_event  (MetaWindow         *window,
+@@ -7178,8 +7180,10 @@ meta_window_handle_mouse_grab_op_event  (MetaWindow         *window,
        meta_display_check_threshold_reached (window->display, x, y);
        if (meta_grab_op_is_moving (window->display->grab_op))
          {
-+          /* FancyTiles owns Shift while a window is dragged. Do not turn
-+           * that modifier into Muffin's independent edge-snap command. */
++          window->display->grab_shift_held =
++            (modifier_state & CLUTTER_SHIFT_MASK) != 0;
            update_move (window,
 -                       modifier_state & CLUTTER_SHIFT_MASK,
 +                       FALSE,
